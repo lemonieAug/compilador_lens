@@ -77,14 +77,16 @@ class LLVMIRGenerator:
         # Gerar as strings globais
         self.llvm_code.append("; Strings globais")
         for name, value in self.string_literals.items():
-            escaped_value = self._escape_string(value)
-            # Calcular corretamente o número de bytes da string com terminador nulo
-            byte_string = bytes(value.strip('"'), "utf-8") + b"\x00"
+            # Calcular corretamente o número de bytes com UTF-8 + terminador nulo
+            raw = value[1:-1] if value.startswith('"') and value.endswith('"') else value
+            byte_string = bytes(raw, "utf-8") + b"\x00"
             length = len(byte_string)
+            escaped_value = self._escape_string(value)
             self.llvm_code.append(
                 f"@{name} = private unnamed_addr constant [{length} x i8] c{escaped_value}, align 1"
             )
         self.llvm_code.append("")
+
 
 
         
