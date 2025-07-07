@@ -19,38 +19,33 @@ class lensVisitor(ParseTreeVisitor):
         return self.visitChildren(ctx)
 
 
-    # Visit a parse tree produced by lensParser#imprime.
-    def visitImprime(self, ctx:lensParser.ImprimeContext):
+    # Visit a parse tree produced by lensParser#impressao.
+    def visitImpressao(self, ctx:lensParser.ImpressaoContext):
         return self.visitChildren(ctx)
 
 
-    # Visit a parse tree produced by lensParser#concat.
-    def visitConcat(self, ctx:lensParser.ConcatContext):
+    # Visit a parse tree produced by lensParser#entrada.
+    def visitEntrada(self, ctx:lensParser.EntradaContext):
         return self.visitChildren(ctx)
 
 
-    # Visit a parse tree produced by lensParser#ler.
-    def visitLer(self, ctx:lensParser.LerContext):
+    # Visit a parse tree produced by lensParser#condicional.
+    def visitCondicional(self, ctx:lensParser.CondicionalContext):
         return self.visitChildren(ctx)
 
 
-    # Visit a parse tree produced by lensParser#condicao.
-    def visitCondicao(self, ctx:lensParser.CondicaoContext):
+    # Visit a parse tree produced by lensParser#if_stmt.
+    def visitIf_stmt(self, ctx:lensParser.If_stmtContext):
         return self.visitChildren(ctx)
 
 
-    # Visit a parse tree produced by lensParser#ifcond.
-    def visitIfcond(self, ctx:lensParser.IfcondContext):
+    # Visit a parse tree produced by lensParser#elseif_stmt.
+    def visitElseif_stmt(self, ctx:lensParser.Elseif_stmtContext):
         return self.visitChildren(ctx)
 
 
-    # Visit a parse tree produced by lensParser#elifcond.
-    def visitElifcond(self, ctx:lensParser.ElifcondContext):
-        return self.visitChildren(ctx)
-
-
-    # Visit a parse tree produced by lensParser#elcond.
-    def visitElcond(self, ctx:lensParser.ElcondContext):
+    # Visit a parse tree produced by lensParser#else_stmt.
+    def visitElse_stmt(self, ctx:lensParser.Else_stmtContext):
         return self.visitChildren(ctx)
 
 
@@ -64,88 +59,78 @@ class lensVisitor(ParseTreeVisitor):
         return self.visitChildren(ctx)
 
 
-    # Visit a parse tree produced by lensParser#arit.
-    def visitArit(self, ctx:lensParser.AritContext):
+    # Visit a parse tree produced by lensParser#expressao.
+    def visitExpressao(self, ctx:lensParser.ExpressaoContext):
         return self.visitChildren(ctx)
 
 
-    # Visit a parse tree produced by lensParser#aritp.
-    def visitAritp(self, ctx:lensParser.AritpContext):
+    # Visit a parse tree produced by lensParser#expressao_logica.
+    def visitExpressao_logica(self, ctx:lensParser.Expressao_logicaContext):
         return self.visitChildren(ctx)
 
 
-    # Visit a parse tree produced by lensParser#oparit.
-    def visitOparit(self, ctx:lensParser.OparitContext):
+    # Visit a parse tree produced by lensParser#expressao_comparacao.
+    def visitExpressao_comparacao(self, ctx:lensParser.Expressao_comparacaoContext):
         return self.visitChildren(ctx)
 
 
-    # Visit a parse tree produced by lensParser#opalogi.
-    def visitOpalogi(self, ctx:lensParser.OpalogiContext):
+    # Visit a parse tree produced by lensParser#expressao_arit.
+    def visitExpressao_arit(self, ctx:lensParser.Expressao_aritContext):
         return self.visitChildren(ctx)
 
 
-    # Visit a parse tree produced by lensParser#comparacao.
-    def visitComparacao(self, ctx:lensParser.ComparacaoContext):
+    # Visit a parse tree produced by lensParser#termo_arit.
+    def visitTermo_arit(self, ctx:lensParser.Termo_aritContext):
         return self.visitChildren(ctx)
 
 
-    # Visit a parse tree produced by lensParser#expcomp.
-    def visitExpcomp(self, ctx:lensParser.ExpcompContext):
+    # Visit a parse tree produced by lensParser#fator.
+    def visitFator(self, ctx:lensParser.FatorContext):
         return self.visitChildren(ctx)
 
 
-    # Visit a parse tree produced by lensParser#explogi.
-    def visitExplogi(self, ctx:lensParser.ExplogiContext):
+    # Visit a parse tree produced by lensParser#literal.
+    def visitLiteral(self, ctx:lensParser.LiteralContext):
         return self.visitChildren(ctx)
 
 
-    # Visit a parse tree produced by lensParser#expTemplate.
-    def visitExpTemplate(self, ctx:lensParser.ExpTemplateContext):
+    # Visit a parse tree produced by lensParser#condicao.
+    def visitCondicao(self, ctx:lensParser.CondicaoContext):
         return self.visitChildren(ctx)
 
 
-    # Visit a parse tree produced by lensParser#exp.
-    def visitExp(self, ctx:lensParser.ExpContext):
+    # Visit a parse tree produced by lensParser#op_adicao.
+    def visitOp_adicao(self, ctx:lensParser.Op_adicaoContext):
         return self.visitChildren(ctx)
 
 
-    # Visit a parse tree produced by lensParser#expcond.
-    def visitExpcond(self, ctx:lensParser.ExpcondContext):
+    # Visit a parse tree produced by lensParser#op_multiplicacao.
+    def visitOp_multiplicacao(self, ctx:lensParser.Op_multiplicacaoContext):
         return self.visitChildren(ctx)
 
 
-    # Visit a parse tree produced by lensParser#dec.
-    def visitDec(self, ctx:lensParser.DecContext):
+    # Visit a parse tree produced by lensParser#op_logico.
+    def visitOp_logico(self, ctx:lensParser.Op_logicoContext):
         return self.visitChildren(ctx)
 
 
-    # Visit a parse tree produced by lensParser#class.
-    def visitClass(self, ctx:lensParser.ClassContext):
+    # Visit a parse tree produced by lensParser#op_comparacao.
+    def visitOp_comparacao(self, ctx:lensParser.Op_comparacaoContext):
         return self.visitChildren(ctx)
 
 
-    # Visit a parse tree produced by lensParser#letvar.
-    def visitLetvar(self, ctx:lensParser.LetvarContext):
+    # Visit a parse tree produced by lensParser#declaracao.
+    def visitDeclaracao(self, ctx:lensParser.DeclaracaoContext):
         return self.visitChildren(ctx)
 
 
-    # Visit a parse tree produced by lensParser#atrsolta.
-    def visitAtrsolta(self, ctx:lensParser.AtrsoltaContext):
+    # Visit a parse tree produced by lensParser#tipo.
+    def visitTipo(self, ctx:lensParser.TipoContext):
         return self.visitChildren(ctx)
 
 
-    # Visit a parse tree produced by lensParser#atr.
-    def visitAtr(self, ctx:lensParser.AtrContext):
-        return self.visitChildren(ctx)
-
-
-    # Visit a parse tree produced by lensParser#rolav.
-    def visitRolav(self, ctx:lensParser.RolavContext):
-        return self.visitChildren(ctx)
-
-
-    # Visit a parse tree produced by lensParser#valor.
-    def visitValor(self, ctx:lensParser.ValorContext):
+    # Visit a parse tree produced by lensParser#atribuicao.
+    def visitAtribuicao(self, ctx:lensParser.AtribuicaoContext):
         return self.visitChildren(ctx)
 
 

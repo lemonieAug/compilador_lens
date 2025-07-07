@@ -47,181 +47,340 @@ class SemanticAnalyzer(lensVisitor):
         self.error(line, f"Variável '{var_name}' usada sem declaração.")
         return None
 
-    def visitDec(self, ctx: lensParser.DecContext):
-        var_name = ctx.letvar().VAR().getText()
-        var_type = ctx.class_().getText()
+    # MUDANÇA: dec → declaracao
+    # Precisamos também salvar o valor das variáveis nas declarações
+    def visitDeclaracao(self, ctx: lensParser.DeclaracaoContext):
+        # Tenta múltiplas formas de acessar VAR
+        if hasattr(ctx, 'VAR') and ctx.VAR():
+            var_name = ctx.VAR().getText()
+        else:
+            var_name = ctx.getToken(lensParser.VAR, 0).getText()
+        
+        # Tenta múltiplas formas de acessar tipo
+        if hasattr(ctx, 'tipo') and ctx.tipo():
+            var_type = ctx.tipo().getText()
+        else:
+            # Fallback: buscar token de tipo diretamente
+            for tipo_token in [lensParser.INT_TYPE, lensParser.STRING_TYPE]:
+                token = ctx.getToken(tipo_token, 0)
+                if token:
+                    var_type = token.getText()
+                    break
+        
         line = ctx.start.line
-
         self.declarar_var(var_name, var_type, line)
 
-        if ctx.atr():
+        if hasattr(ctx, 'expressao') and ctx.expressao():
             self.scope_stack[-1][var_name]["atribuida"] = True
-            valor_tipo = self.visit(ctx.atr())
-            if valor_tipo and not self.comparar_tipos(var_type, valor_tipo):
+            valor_tipo = self.visit(ctx.expressao())
+            
+            # NOVO: Salvar valor se for literal simples
+            if ctx.expressao():
+                valor_texto = ctx.expressao().getText()
+                self.scope_stack[-1][var_name]["valor"] = valor_texto
+            
+            if valor_tipo and valor_tipo != "erro" and not self.comparar_tipos(var_type, valor_tipo):
                 self.error(line, f"Atribuição incompatível: '{var_name}' é '{var_type}', mas recebeu '{valor_tipo}'.")
         return None
 
-    def visitAtrsolta(self, ctx: lensParser.AtrsoltaContext):
-        var_name = ctx.VAR().getText()
+    # MUDANÇA: atrsolta → atribuicao
+    def visitAtribuicao(self, ctx: lensParser.AtribuicaoContext):
+        try:
+            var_name = ctx.VAR().getText()
+        except:
+            self.error(ctx.start.line, "Nome de variável não encontrado na atribuição.")
+            return None
+            
         line = ctx.start.line
-
         simbolo = self.buscar_var(var_name, line)
+
         if simbolo:
             self.log_action(f"Atribuição para variável '{var_name}'.")
             simbolo["atribuida"] = True
 
-            valor_tipo = self.visit(ctx.rolav())
-            if valor_tipo and not self.comparar_tipos(simbolo["type"], valor_tipo):
+            valor_tipo = self.visit(ctx.expressao())
+            if valor_tipo and valor_tipo != "erro" and not self.comparar_tipos(simbolo["type"], valor_tipo):
                 self.error(line, f"Atribuição incompatível: '{var_name}' é '{simbolo['type']}', mas recebeu '{valor_tipo}'.")
+                
+            # NOVO: Atualizar valor se for literal
+            if ctx.expressao():
+                valor_texto = ctx.expressao().getText()
+                if valor_texto.replace('-', '').isdigit():
+                    simbolo["valor"] = valor_texto
+        return None   
+
+    # MUDANÇA: imprime → impressao
+    def visitImpressao(self, ctx: lensParser.ImpressaoContext):
+        # Mudança: concat() → acesso direto às expressões
+        for expressao in ctx.expressao():
+            self.visit(expressao)
         return None
 
-    def visitAtr(self, ctx: lensParser.AtrContext):
-        return self.visit(ctx.rolav())
-
-    def visitRolav(self, ctx: lensParser.RolavContext):
-        if ctx.exp():
-            return self.visit(ctx.exp())
-        return self.visit(ctx.valor())
-
-    def visitConcat(self, ctx: lensParser.ConcatContext):
-        for item in ctx.rolav():
-            self.visit(item)
+    # MUDANÇA: ler → entrada
+    def visitEntrada(self, ctx: lensParser.EntradaContext):
+        var_name = ctx.VAR().getText()
+        line = ctx.start.line
+        
+        # Verificar se a variável existe
+        simbolo = self.buscar_var(var_name, line)
+        
+        # CORREÇÃO: input() atribui valor à variável
+        if simbolo:
+            simbolo["atribuida"] = True  # ← LINHA ADICIONADA
+            self.log_action(f"Variável '{var_name}' recebeu valor via input().")
+        
         return None
 
-    def visitImprime(self, ctx: lensParser.ImprimeContext):
-        self.visit(ctx.concat())
+    # MUDANÇA: condicao → condicional
+    def visitCondicional(self, ctx: lensParser.CondicionalContext):
+        # Visitar if obrigatório
+        if ctx.if_stmt():
+            self.visit(ctx.if_stmt())
+        
+        # Visitar elseifs (pode ter zero ou mais)
+        if hasattr(ctx, 'elseif_stmt'):
+            elseifs = ctx.elseif_stmt()
+            if elseifs:
+                if isinstance(elseifs, list):
+                    for elseif_stmt in elseifs:
+                        self.visit(elseif_stmt)
+                else:
+                    self.visit(elseifs)
+        
+        # Visitar else opcional
+        if ctx.else_stmt():
+            self.visit(ctx.else_stmt())
         return None
 
-
-    def visitArit(self, ctx: lensParser.AritContext):
-        valores = ctx.valor()
-        operadores = ctx.oparit()
-        tipos = [self.visit(v) for v in valores]
-
-        if operadores:
-            if "string" in tipos or "bool" in tipos:
-                self.error(ctx.start.line, f"Operação aritmética inválida com tipos: {tipos}")
-                return "erro"
-            if any(op.getText() == '/' and valor.INT() and valor.INT().getText() == '0'
-                   for op, valor in zip(operadores, valores[1:])):
-                self.error(ctx.start.line, "Divisão por zero.")
-
-            return "float" if "float" in tipos else "int"
-        else:
-            return tipos[0] if tipos else "indefinido"
-
-    def visitExpcond(self, ctx: lensParser.ExpcondContext):
-        return self.visit(ctx.explogi())
-
-    def visitExplogi(self, ctx: lensParser.ExplogiContext):
-        exp_list = ctx.expcomp()
-        for exp in exp_list:
-            tipo = self.visit(exp)
-            if tipo != "bool":
-                self.error(ctx.start.line, f"Expressão lógica requer booleanos, mas obteve '{tipo}'.")
-        return "bool"
-
-
-    def visitExpcomp(self, ctx: lensParser.ExpcompContext):
-        left = self.visit(ctx.arit(0))
-        right = self.visit(ctx.arit(1)) if len(ctx.arit()) > 1 else None
-
-        if right:
-            if left != right:
-                if {left, right} <= {"int", "float"}:
-                    return "bool"
-                self.error(ctx.start.line, f"Comparacão inválida entre tipos '{left}' e '{right}'.")
-                return "erro"
-            return "bool"
-        return "bool" if left in ["bool"] else left
-    
-
-    def visitExp(self, ctx: lensParser.ExpContext):
-        return self.visit(ctx.expTemplate())
-
-    def visitExpTemplate(self, ctx: lensParser.ExpTemplateContext):
-        if ctx.getToken(lensParser.VAR, 0):
-            return self.visitValor(ctx)
-        if ctx.getToken(lensParser.INT, 0):
-            return "int"
-        if ctx.getToken(lensParser.FLOAT, 0):
-            return "float"
-        if ctx.getToken(lensParser.STRING, 0):
-            return "string"
-        if ctx.getToken(lensParser.BOOL, 0):
-            return "bool"
-        if ctx.arit():
-            return self.visit(ctx.arit())
-        if ctx.explogi():
-            return self.visit(ctx.explogi())
-        if ctx.expcomp():
-            return self.visit(ctx.expcomp())
-        return "indefinido"
-
-
-    def visitValor(self, ctx: lensParser.ValorContext):
-        if ctx.getToken(lensParser.INT, 0): return "int"
-        if ctx.getToken(lensParser.FLOAT, 0): return "float"
-        if ctx.getToken(lensParser.BOOL, 0): return "bool"
-        if ctx.getToken(lensParser.STRING, 0): return "string"
-        if ctx.getToken(lensParser.VAR, 0):
-            var_name = ctx.getToken(lensParser.VAR, 0).getText()
-            simbolo = self.buscar_var(var_name, ctx.start.line)
-            if simbolo:
-                if not simbolo.get("atribuida", False):
-                    self.error(ctx.start.line, f"Variável '{var_name}' usada antes de ser atribuída.")
-                return simbolo["type"]
-            else:
-                return "indefinido"
-        if ctx.aritp():
-            return self.visit(ctx.aritp())
-        return "indefinido"
-
-
-
-    def visitAritp(self, ctx: lensParser.AritpContext):
-        if ctx.explogi():
-            return self.visit(ctx.explogi())
-        return "indefinido"
-
-    def visitIfcond(self, ctx: lensParser.IfcondContext):
+    def visitIf_stmt(self, ctx: lensParser.If_stmtContext):
         self.scope_stack.append({})
-        self.visitChildren(ctx)
+        
+        # Visitar condição
+        if ctx.condicao():
+            self.visit(ctx.condicao())
+        
+        # Visitar comandos
+        if hasattr(ctx, 'comando'):
+            comandos = ctx.comando()
+            if comandos:
+                if isinstance(comandos, list):
+                    for comando in comandos:
+                        self.visit(comando)
+                else:
+                    self.visit(comandos)
+        
         self.scope_stack.pop()
         return None
 
-    def visitElifcond(self, ctx: lensParser.ElifcondContext):
+    def visitElseif_stmt(self, ctx: lensParser.Elseif_stmtContext):
         self.scope_stack.append({})
-        self.visitChildren(ctx)
+        
+        # Visitar condição
+        if ctx.condicao():
+            self.visit(ctx.condicao())
+        
+        # Visitar comandos
+        if hasattr(ctx, 'comando'):
+            comandos = ctx.comando()
+            if comandos:
+                if isinstance(comandos, list):
+                    for comando in comandos:
+                        self.visit(comando)
+                else:
+                    self.visit(comandos)
+        
         self.scope_stack.pop()
         return None
 
-    def visitElcond(self, ctx: lensParser.ElcondContext):
+    def visitElse_stmt(self, ctx: lensParser.Else_stmtContext):
         self.scope_stack.append({})
-        self.visitChildren(ctx)
+        
+        # Visitar comandos
+        if hasattr(ctx, 'comando'):
+            comandos = ctx.comando()
+            if comandos:
+                if isinstance(comandos, list):
+                    for comando in comandos:
+                        self.visit(comando)
+                else:
+                    self.visit(comandos)
+        
         self.scope_stack.pop()
         return None
 
     def visitLacofor(self, ctx: lensParser.LacoforContext):
+        # Criar novo escopo para o for
         self.scope_stack.append({})
-        self.visitChildren(ctx)
+        
+        # CORREÇÃO: Declarar automaticamente a variável de iteração
+        if hasattr(ctx, 'VAR') and ctx.VAR():
+            var_name = ctx.VAR().getText()
+            line = ctx.start.line
+            
+            # Declarar variável de iteração como int (sempre é int nos ranges)
+            self.scope_stack[-1][var_name] = {
+                "type": "int",
+                "line": line,
+                "atribuida": True  # Já está atribuída pelo for
+            }
+            self.log_action(f"Variável de iteração '{var_name}' declarada automaticamente no for.")
+        
+        # Visitar as expressões do range (início..fim)
+        if hasattr(ctx, 'expressao'):
+            expressoes = ctx.expressao()
+            if expressoes:
+                for expr in expressoes:
+                    self.visit(expr)
+        
+        # Visitar comandos dentro do for
+        if hasattr(ctx, 'comando'):
+            comandos = ctx.comando()
+            if comandos:
+                if isinstance(comandos, list):
+                    for comando in comandos:
+                        self.visit(comando)
+                else:
+                    self.visit(comandos)
+        
+        # Remover escopo do for
         self.scope_stack.pop()
         return None
 
     def visitLacowhile(self, ctx: lensParser.LacowhileContext):
         self.scope_stack.append({})
-        self.visitChildren(ctx)
+        # Visitar condição
+        self.visit(ctx.condicao())
+        # Visitar comandos
+        for comando in ctx.comando():
+            self.visit(comando)
         self.scope_stack.pop()
         return None
+
+    # Métodos para expressões (adaptados aos novos nomes)
+    def visitExpressao(self, ctx: lensParser.ExpressaoContext):
+        return self.visit(ctx.expressao_logica())
+
+    def visitExpressao_logica(self, ctx: lensParser.Expressao_logicaContext):
+        # Visitar primeira expressão
+        tipo_primeiro = self.visit(ctx.expressao_comparacao(0))
+        
+        if len(ctx.expressao_comparacao()) > 1:
+            # Há operações lógicas
+            for i in range(1, len(ctx.expressao_comparacao())):
+                tipo_expr = self.visit(ctx.expressao_comparacao(i))
+                # Permitir apenas int para lógica (0 = falso, !=0 = verdadeiro)
+                if tipo_primeiro != "int" or tipo_expr != "int":
+                    self.error(ctx.start.line, f"Operação lógica requer inteiros (0 ou 1).")
+                    return "erro"
+            return "int"
+        return tipo_primeiro
+
+    def visitExpressao_comparacao(self, ctx: lensParser.Expressao_comparacaoContext):
+        tipo_primeiro = self.visit(ctx.expressao_arit(0))
+        
+        if len(ctx.expressao_arit()) > 1:
+            # Há comparação
+            tipo_segundo = self.visit(ctx.expressao_arit(1))
+            if tipo_primeiro != tipo_segundo:
+                self.error(ctx.start.line, f"Comparação inválida entre tipos '{tipo_primeiro}' e '{tipo_segundo}'.")
+                return "erro"
+            return "int"
+        return tipo_primeiro
+
+    def visitExpressao_arit(self, ctx: lensParser.Expressao_aritContext):
+        tipo_primeiro = self.visit(ctx.termo_arit(0))
+        
+        if len(ctx.termo_arit()) > 1:
+            # Há operações aritméticas
+            tipos = [tipo_primeiro]
+            for i in range(1, len(ctx.termo_arit())):
+                tipos.append(self.visit(ctx.termo_arit(i)))
+            
+            # CORREÇÃO: Permitir concatenação de strings com operador +
+            if "String" in tipos:
+                # Se tem String, só permite + para concatenação
+                if hasattr(ctx, 'op_adicao'):
+                    for op in ctx.op_adicao():
+                        if op.getText() != '+':
+                            self.error(ctx.start.line, f"Operação '{op.getText()}' inválida com String. Use apenas '+'.")
+                            return "erro"
+                return "String"  # Resultado da concatenação é String
+            
+            return "int"
+        return tipo_primeiro
+
+    def visitTermo_arit(self, ctx: lensParser.Termo_aritContext):
+        tipo_primeiro = self.visit(ctx.fator(0))
+        
+        if len(ctx.fator()) > 1:
+            # Há operações de multiplicação/divisão
+            tipos = [tipo_primeiro]
+            for i in range(1, len(ctx.fator())):
+                tipos.append(self.visit(ctx.fator(i)))
+            
+            # String não pode usar * ou /
+            if "String" in tipos:
+                self.error(ctx.start.line, f"Operação multiplicação/divisão inválida com String.")
+                return "erro"
+                
+            return "int"
+        return tipo_primeiro
+
+    # Método auxiliar para buscar variável sem gerar erro
+    def buscar_var_silencioso(self, var_name):
+        """Busca variável sem gerar erro se não encontrar."""
+        for escopo in reversed(self.scope_stack):
+            if var_name in escopo:
+                return escopo[var_name]
+        return None
+
+    def visitFator(self, ctx: lensParser.FatorContext):
+        # Método alternativo - verificar texto diretamente
+        texto = ctx.getText()
+        
+        # Verificar se é uma variável (não começa com aspas, não é número)
+        if hasattr(ctx, 'VAR') and ctx.VAR():
+            var_name = ctx.VAR().getText()
+            simbolo = self.buscar_var(var_name, ctx.start.line)
+            if simbolo:
+                if not simbolo.get("atribuida", False):
+                    self.error(ctx.start.line, f"Variável '{var_name}' usada antes de ser atribuída.")
+                return simbolo["type"]
+            return "indefinido"
+        
+        # Verificar se é string (começa e termina com aspas)
+        elif texto.startswith('"') and texto.endswith('"'):
+            return "String"
+        
+        # Verificar se é inteiro
+        elif texto.replace('-', '').isdigit():
+            return "int"
+        
+        # Verificar se é uma expressão entre parênteses
+        elif hasattr(ctx, 'expressao') and ctx.expressao():
+            return self.visit(ctx.expressao())
+        
+        # Tentar métodos alternativos do ANTLR
+        elif hasattr(ctx, 'INT') and ctx.INT():
+            return "int"
+        elif hasattr(ctx, 'STRING') and ctx.STRING():
+            return "String"
+        
+        print(f"DEBUG: Fator não reconhecido: '{texto}' - Tipo: {type(ctx)}")
+        return "indefinido"
+    
+    def visitCondicao(self, ctx: lensParser.CondicaoContext):
+        return self.visit(ctx.expressao_logica())
 
     def comparar_tipos(self, tipo_destino, tipo_origem):
         if tipo_destino == tipo_origem:
             return True
-        if {tipo_destino, tipo_origem} <= {"int", "float"}:
-            return True  # coerção permitida
         return False
 
-
     def report(self):
+        """Relatório final da análise semântica."""
         if not self.errors_found:
             logging.info("Análise semântica concluída sem erros.")
+            # NÃO imprime no console - será feito no main.py
+        else:
+            logging.error(f"Análise semântica encontrou erros.")

@@ -1,38 +1,283 @@
 @start
+    // =====================================================
+    //   DEMONSTRAÇÃO COMPLETA DA LINGUAGEM LENS
+    // =====================================================
+    
+    // =====================================================
+    //   DECLARAÇÕES DE VARIÁVEIS (todos os tipos)
+    // =====================================================
+    
+    // Tipos primitivos básicos
+    let idade: int = 25
+    let altura: int = 175
+    let nome: String = "João Silva"
+    
+    // Declarações sem inicialização
+    let contador: int
+    let peso: int
+    let sobrenome: String
+    
+    // =====================================================
+    //   ATRIBUIÇÕES (simples e compostas)
+    // =====================================================
+    
+    // Atribuições simples
+    contador = 0
+    peso = 70
+    sobrenome = "Santos"
+    
+    // Atribuições compostas
+    idade += 5          // idade = idade + 5 = 30
+    altura -= 5      // altura = altura - 5 = 170
+    contador *= 2       // contador = contador * 2 = 0
+    peso /= 2           // peso = peso / 2 = 35
+    
+    // =====================================================
+    //   IMPRESSÕES (vários formatos)
+    // =====================================================
+    
+    // Impressão simples
+    print :: "=== DEMONSTRAÇÃO LENS ==="
+    print :: nome
+    print :: idade
+    
+    // Impressão múltipla (string + valor)
+    print :: "Nome completo:", nome, sobrenome
+    print :: "Idade atual:", idade
+    print :: "Altura:", altura
+    print :: "Peso:", peso
+    
+    // =====================================================
+    //   EXPRESSÕES ARITMÉTICAS
+    // =====================================================
+    
+    let a: int = 10
+    let b: int = 3
+    
+    let soma: int = a + b           // 13
+    let subtracao: int = a - b      // 7
+    let multiplicacao: int = a * b  // 30
+    let divisao: int = a / b        // 3
+    
+    print :: "Operações com", a, "e", b
+    print :: "Soma:", soma
+    print :: "Subtração:", subtracao
+    print :: "Multiplicação:", multiplicacao
+    print :: "Divisão:", divisao
+    
+    // Expressões complexas com precedência
+    let resultado: int = a + b * 2 - 1    // 10 + 6 - 1 = 15
+    let complexo: int = (a + b) * 2       // (10 + 3) * 2 = 26
+    
+    print :: "Resultado complexo:", resultado
+    print :: "Com parênteses:", complexo
+    
+    // =====================================================
+    //  EXPRESSÕES DE COMPARAÇÃO
+    // =====================================================
+    
+    let igual: int = a == b        // 0 (falso)
+    let diferente: int = a != b    // 1 (verdadeiro)
+    let menor: int = a < b         // 0
+    let maior: int = a > b         // 1
+    let menorIgual: int = a <= b   // 0
+    let maiorIgual: int = a >= b   // 1
 
-    // 🔍 1. Verificação de variável usada sem declaração
-    // Esperado: Erro semântico — variável 'naoDeclarada' usada sem declaração
-    // print :: naoDeclarada
+    print :: "=== COMPARAÇÕES ==="
+    print :: "10 == 3:", igual
+    print :: "10 != 3:", diferente
+    print :: "10 < 3:", menor
+    print :: "10 > 3:", maior
+    print :: "10 <= 3:", menorIgual
+    print :: "10 >= 3:", maiorIgual
+    
+    // =====================================================
+    //  EXPRESSÕES LÓGICAS
+    // =====================================================
+    
+    let condicao1: int = 1      // 1 para verdadeiro
+    let condicao2: int = 0      // 0 para falso
 
+    let e_logico: int = condicao1 && condicao2     // 0
+    let ou_logico: int = condicao1 || condicao2    // 1
 
-    // 🔍 2. Verificação de variável duplicada
-    // Esperado: Erro semântico — variável 'x' já declarada neste escopo
-    // let x: int = 10
-    // let x: int = 20
+    print :: "=== OPERAÇÕES LÓGICAS ==="
+    print :: "1 && 0:", e_logico
+    print :: "1 || 0:", ou_logico
 
-
-    // 🔍 3. Verificação de divisão por zero
-    // Esperado: Erro semântico — divisão por zero
-    //let a: int = 10
-    //let resultado: int = a / 0
-
-
-    // 🔍 4. Verificação de operação inválida entre tipos: string + int
-    // Esperado: Erro semântico — operação aritmética inválida
-    // let nome: String = "João"
-    // let idade: int = 20
-    // let soma: int = nome + idade
-
-
-    // 🔍 5. Verificação de operação lógica inválida: bool && int
-    // Esperado: Erro semântico — expressão lógica requer booleanos
-    // let ativo: bool = True
-    // let total: int = 3
-    // let logico: bool = ativo && total
-
-
-    // ✅ 6. Exemplo válido (só para referência)
-    let valido: int = 1 + 2
-    print :: "Resultado válido:", valido
+    // Expressão lógica complexa
+    let complexa: int = (a > b) && (soma > 10)     // 1 && 1 = 1
+    print :: "Expressão complexa:", complexa
+    
+    // =====================================================
+    //   ENTRADA DE DADOS
+    // =====================================================
+    
+    let entrada_usuario: int
+    print :: "Digite um número:"
+    input(entrada_usuario)
+    
+    print :: "Você digitou:", entrada_usuario
+    
+    // =====================================================
+    //   ESTRUTURAS CONDICIONAIS (if/elseif/else)
+    // =====================================================
+    
+    print :: "=== ESTRUTURAS CONDICIONAIS ==="
+    
+    // Condicional simples
+    if (idade >= 18) {
+        print :: "Maior de idade"
+    }
+    
+    // Condicional completa
+    if (idade < 13) {
+        print :: "Criança"
+    } elseif (idade < 18) {
+        print :: "Adolescente"
+    } elseif (idade < 60) {
+        print :: "Adulto"
+    } else {
+        print :: "Idoso"
+    }
+    
+    // =====================================================
+    //   LAÇOS FOR (iteração com range)
+    // =====================================================
+    
+    print :: "=== LAÇOS FOR ==="
+    
+    // For básico
+    print :: "Contagem de 1 a 5:"
+    for i in 1..5 {
+        print :: "Número:", i
+    }
+    
+    // For com range negativo
+    print :: "Contagem regressiva:"
+    for j in 10..7 {
+        print :: "Contagem:", j
+    }
+    
+    // For com variáveis
+    let inicio: int = 0
+    let fim: int = 3
+    print :: "Range dinâmico:"
+    for k in inicio..fim {
+        print :: "Valor de k:", k
+        let quadrado: int = k * k
+        print :: "Quadrado:", quadrado
+    }
+    
+    // =====================================================
+    //   LAÇOS WHILE (iteração condicional)
+    // =====================================================
+    
+    print :: "=== LAÇOS WHILE ==="
+    
+    // While básico
+    let cont: int = 0
+    print :: "Contagem while até 3:"
+    while (cont < 3) {
+        print :: "Contador:", cont
+        cont += 1
+    }
+    
+    // While com condição complexa
+    let x: int = 10
+    let y: int = 1
+    print :: "While com condição complexa:"
+    while (x > y && y < 5) {
+        print :: "x =", x, "y =", y
+        x -= 2
+        y += 1
+    }
+    
+    // =====================================================
+    //   CASOS DE USO AVANÇADOS
+    // =====================================================
+    
+    print :: "=== CASOS AVANÇADOS ==="
+    
+    // Calculadora simples
+    let num1: int = 15
+    let num2: int = 4
+    let operacao: int = 1  // 1=soma, 2=sub, 3=mul, 4=div
+    
+    if (operacao == 1) {
+        let result: int = num1 + num2
+        print :: "Soma:", num1, "+", num2, "=", result
+    } elseif (operacao == 2) {
+        let result: int = num1 - num2
+        print :: "Subtração:", num1, "-", num2, "=", result
+    } elseif (operacao == 3) {
+        let result: int = num1 * num2
+        print :: "Multiplicação:", num1, "*", num2, "=", result
+    } elseif (operacao == 4) {
+        if (num2 != 0) {
+            let result: int = num1 / num2
+            print :: "Divisão:", num1, "/", num2, "=", result
+        } else {
+            print :: "Erro: Divisão por zero!"
+        }
+    }
+    
+    // Fatorial simples (usando for)
+    let n: int = 5
+    let fatorial: int = 1
+    print :: "Calculando fatorial de", n
+    
+    for f in 1..n {
+        fatorial *= f
+        print :: "Passo", f, ":", fatorial
+    }
+    print :: "Fatorial final:", fatorial
+    
+    // Sequência de Fibonacci (primeiros 10 números)
+    let fib1: int = 0
+    let fib2: int = 1
+    let fib_count: int = 0
+    
+    print :: "Sequência de Fibonacci:"
+    print :: "F(0) =", fib1
+    print :: "F(1) =", fib2
+    
+    while (fib_count < 8) {
+        let proximo: int = fib1 + fib2
+        fib_count += 1
+        print :: "F(" , fib_count + 1, ") =", proximo
+        fib1 = fib2
+        fib2 = proximo
+    }
+    
+    // Validação de dados
+    let nota: int = 8
+    let frequencia: int = 85
+    
+    print :: "=== VALIDAÇÃO DE APROVAÇÃO ==="
+    print :: "Nota:", nota
+    print :: "Frequência:", frequencia
+    
+    if (nota >= 7 && frequencia >= 75) {
+        print :: "APROVADO!"
+    } elseif (nota >= 5 && frequencia >= 75) {
+        print :: "RECUPERAÇÃO"
+    } else {
+        print :: "REPROVADO!"
+    }
+    
+    // =====================================================
+    //   FINALIZAÇÃO
+    // =====================================================
+    
+    print :: "=========================="
+    print :: "Demonstração finalizada!"
+    print :: "Todas as funcionalidades foram testadas:"
+    print :: "Tipos: int, String"
+    print :: "Operadores: +, -, *, /, ==, !=, <, >, <=, >=, &&, ||"
+    print :: "Estruturas: if/elseif/else, for, while"
+    print :: "E/S: print, input"
+    print :: "Expressões complexas e precedência"
+    print :: "=========================="
 
 @end
