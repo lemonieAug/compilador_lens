@@ -131,33 +131,20 @@ class LLVMIRGenerator:
             self.string_literals[name] = value
     
     def _escape_string(self, s: str) -> str:
-        """Escapa corretamente uma string para LLVM IR com bytes literais."""
-        # Remove aspas externas, se presentes
+        """Escapa uma string para o formato LLVM IR, usando escapes hexadecimais."""
+        # Remove aspas externas, se existirem
         if s.startswith('"') and s.endswith('"'):
             s = s[1:-1]
 
-        # Constrói a string byte por byte
-        escaped = ''
-        for c in s:
-            if c == '\n':
-                escaped += r'\0A'
-            elif c == '\t':
-                escaped += r'\09'
-            elif c == '\r':
-                escaped += r'\0D'
-            elif c == '\\':
-                escaped += r'\\'
-            elif c == '"':
-                escaped += r'\22'
-            elif ord(c) < 32 or ord(c) >= 127:
-                # Outros caracteres não-imprimíveis ou especiais
-                escaped += f"\\{ord(c):02X}"
-            else:
-                escaped += c
+        # Codifica a string em UTF-8 e adiciona o byte nulo de término
+        byte_str = s.encode('utf-8') + b"\x00"
 
-        # Adiciona terminador nulo
-        escaped += r'\00'
+        # Converte cada byte para a notação \XX (hexadecimal, como \0A, \C3, etc.)
+        escaped = ''.join(f'\\{b:02X}' for b in byte_str)
+
+        # Retorna a string entre aspas como esperado pelo LLVM (ex: "...\00")
         return f'"{escaped}"'
+
 
     
     def _generate_main_function(self):
