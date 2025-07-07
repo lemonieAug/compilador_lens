@@ -13,8 +13,10 @@ class LLVMIRGenerator:
         self.variables = {}
         self.temp_counter = 0
         self.label_counter = 0
-        self.string_literals = {}       # nome: valor
-        self.string_to_name = {}        # valor: nome
+
+        # Strings globais
+        self.string_literals = {}    # nome → valor
+        self.string_to_name = {}     # valor → nome
         self.string_counter = 0
 
         
@@ -61,14 +63,14 @@ class LLVMIRGenerator:
     
     def _generate_global_strings(self):
         """Gera strings globais necessárias."""
-        # Analisar instruções TAC para encontrar strings
+        # 1) Coleta das literais de PRINT
         for instr in self.tac_instructions:
             if instr['op'] == 'PRINT':
                 arg = instr['arg1']
                 if isinstance(arg, str) and arg.startswith('"') and arg.endswith('"'):
                     self._add_string_literal(arg)
 
-        # Formatos para printf e scanf
+        # 2) Strings de formato fixas
         self._add_format_string('int_format', '"%d"')
         self._add_format_string('int_format_newline', '"%d\\n"')
         self._add_format_string('string_format', '"%s"')
@@ -76,53 +78,39 @@ class LLVMIRGenerator:
         self._add_format_string('scanf_int', '"%d"')
         self._add_format_string('newline', '"\\n"')
 
-        # Gerar as strings globais
+        # 3) Emissão das globals (nome→valor)
         self.llvm_code.append("; Strings globais")
         for name, value in self.string_literals.items():
-            # Calcular corretamente o número de bytes com UTF-8 + terminador nulo
+            # raw sem aspas
             raw = value[1:-1] if value.startswith('"') and value.endswith('"') else value
-            byte_string = bytes(raw, "utf-8") + b"\x00"
+            # conta bytes UTF-8 + terminador
+            byte_string = raw.encode('utf-8') + b"\x00"
             length = len(byte_string)
+            # escapa cada byte em \XX
             escaped_value = self._escape_string(value)
+            # escreve a global
             self.llvm_code.append(
                 f"@{name} = private unnamed_addr constant [{length} x i8] c{escaped_value}, align 1"
             )
         self.llvm_code.append("")
 
 
-
-        
-        # Formatos para printf e scanf
-        self._add_format_string('int_format', '"%d"')
-        self._add_format_string('int_format_newline', '"%d\\n"')
-        self._add_format_string('string_format', '"%s"')
-        self._add_format_string('string_format_newline', '"%s\\n"')
-        self._add_format_string('scanf_int', '"%d"')
-        self._add_format_string('newline', '"\\n"')
-        
-        # Gerar as strings globais
-        self.llvm_code.append("; Strings globais")
-        for name, value in self.string_literals.items():
-            # Remove aspas externas para calcular o tamanho real
-            if value.startswith('"') and value.endswith('"'):
-                raw = value[1:-1]
-            else:
-                raw = value
-            length = len(raw.encode('utf-8')) + 1  # +1 para o terminador nulo
-            escaped_value = self._escape_string(value)
-            self.llvm_code.append(f"@{name} = private unnamed_addr constant [{length} x i8] c{escaped_value}, align 1")
-        self.llvm_code.append("")
-
     def _add_string_literal(self, string_value: str) -> str:
-        """Adiciona uma string literal se ainda não existir e retorna seu nome global."""
+        """
+        Garante que cada literal apareça apenas uma vez.
+        Se já existir, retorna o nome; senão, cria novo.
+        """
+        # Se já conhecemos esse valor, retorna imediatamente o nome
         if string_value in self.string_to_name:
             return self.string_to_name[string_value]
         
+        # Senão, criamos um novo nome e registramos nos dois dicionários
         self.string_counter += 1
         name = f"str_{self.string_counter}"
         self.string_literals[name] = string_value
         self.string_to_name[string_value] = name
         return name
+
 
     
     def _add_format_string(self, name: str, value: str):
