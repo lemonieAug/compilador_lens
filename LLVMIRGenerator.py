@@ -10,11 +10,13 @@ class LLVMIRGenerator:
     def __init__(self, tac_instructions: List[Dict[str, Any]]):
         self.tac_instructions = tac_instructions
         self.llvm_code = []
-        self.variables = {}          # Mapeamento de variáveis para tipos LLVM
-        self.temp_counter = 0        # Contador para variáveis temporárias
-        self.label_counter = 0       # Contador para labels
-        self.string_literals = {}    # Mapeamento de strings para globals
-        self.string_counter = 0      # Contador para strings globais
+        self.variables = {}
+        self.temp_counter = 0
+        self.label_counter = 0
+        self.string_literals = {}       # nome: valor
+        self.string_to_name = {}        # valor: nome
+        self.string_counter = 0
+
         
     def generate(self) -> str:
         """Gera o código LLVM IR completo."""
@@ -112,18 +114,16 @@ class LLVMIRGenerator:
         self.llvm_code.append("")
 
     def _add_string_literal(self, string_value: str) -> str:
-        """Adiciona uma string literal e retorna seu nome global."""
-        if string_value not in self.string_literals.values():
-            self.string_counter += 1
-            name = f"str_{self.string_counter}"
-            self.string_literals[name] = string_value
-            return name
-        else:
-            # Encontrar o nome existente
-            for name, value in self.string_literals.items():
-                if value == string_value:
-                    return name
-        return ""
+        """Adiciona uma string literal se ainda não existir e retorna seu nome global."""
+        if string_value in self.string_to_name:
+            return self.string_to_name[string_value]
+        
+        self.string_counter += 1
+        name = f"str_{self.string_counter}"
+        self.string_literals[name] = string_value
+        self.string_to_name[string_value] = name
+        return name
+
     
     def _add_format_string(self, name: str, value: str):
         """Adiciona uma string de formato."""
