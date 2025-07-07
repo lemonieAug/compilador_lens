@@ -65,6 +65,28 @@ class LLVMIRGenerator:
                 arg = instr['arg1']
                 if isinstance(arg, str) and arg.startswith('"') and arg.endswith('"'):
                     self._add_string_literal(arg)
+
+        # Formatos para printf e scanf
+        self._add_format_string('int_format', '"%d"')
+        self._add_format_string('int_format_newline', '"%d\\n"')
+        self._add_format_string('string_format', '"%s"')
+        self._add_format_string('string_format_newline', '"%s\\n"')
+        self._add_format_string('scanf_int', '"%d"')
+        self._add_format_string('newline', '"\\n"')
+
+        # Gerar as strings globais
+        self.llvm_code.append("; Strings globais")
+        for name, value in self.string_literals.items():
+            escaped_value = self._escape_string(value)
+            # Calcular corretamente o número de bytes da string com terminador nulo
+            byte_string = bytes(value.strip('"'), "utf-8") + b"\x00"
+            length = len(byte_string)
+            self.llvm_code.append(
+                f"@{name} = private unnamed_addr constant [{length} x i8] c{escaped_value}, align 1"
+            )
+        self.llvm_code.append("")
+
+
         
         # Formatos para printf e scanf
         self._add_format_string('int_format', '"%d"')
