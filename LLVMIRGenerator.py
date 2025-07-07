@@ -129,16 +129,33 @@ class LLVMIRGenerator:
             self.string_literals[name] = value
     
     def _escape_string(self, s: str) -> str:
-        """Escapa uma string para LLVM corretamente com quebra de linha."""
-        # Remove aspas externas
+        """Escapa corretamente uma string para LLVM IR com bytes literais."""
+        # Remove aspas externas, se presentes
         if s.startswith('"') and s.endswith('"'):
             s = s[1:-1]
 
-        # Substitui \n por \0A (nova linha)
-        s = s.replace('\\n', r'\0A')
+        # Constrói a string byte por byte
+        escaped = ''
+        for c in s:
+            if c == '\n':
+                escaped += r'\0A'
+            elif c == '\t':
+                escaped += r'\09'
+            elif c == '\r':
+                escaped += r'\0D'
+            elif c == '\\':
+                escaped += r'\\'
+            elif c == '"':
+                escaped += r'\22'
+            elif ord(c) < 32 or ord(c) >= 127:
+                # Outros caracteres não-imprimíveis ou especiais
+                escaped += f"\\{ord(c):02X}"
+            else:
+                escaped += c
 
         # Adiciona terminador nulo
-        return f'"{s}\\00"'
+        escaped += r'\00'
+        return f'"{escaped}"'
 
     
     def _generate_main_function(self):
