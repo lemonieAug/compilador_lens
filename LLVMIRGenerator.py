@@ -41,7 +41,7 @@ class LLVMIRGenerator:
             "; Gerado automaticamente pelo compilador",
             "",
             "target datalayout = \"e-m:w-p270:32:32-p271:32:32-p272:64:64-i64:64-f80:128-n8:16:32:64-S128\"",
-            "target triple = \"x86_64-pc-windows-gnu\"",
+            "target triple = \"x86_64-pc-linux-gnu\"",#fazer uma funcao para capturar o triple do sistema x86_64-pc-windows-gnu
             ""
         ])
     
@@ -107,13 +107,17 @@ class LLVMIRGenerator:
             self.string_literals[name] = value
     
     def _escape_string(self, s: str) -> str:
-        """Escapa uma string para LLVM."""
+        """Escapa uma string para LLVM corretamente com quebra de linha."""
         # Remove aspas externas
         if s.startswith('"') and s.endswith('"'):
             s = s[1:-1]
-        
-        # Adiciona null terminator
+
+        # Substitui \n por \0A (nova linha)
+        s = s.replace('\\n', r'\0A')
+
+        # Adiciona terminador nulo
         return f'"{s}\\00"'
+
     
     def _generate_main_function(self):
         """Gera a função principal."""

@@ -47,7 +47,7 @@ class SemanticAnalyzer(lensVisitor):
         self.error(line, f"Variável '{var_name}' usada sem declaração.")
         return None
 
-    # MUDANÇA: dec → declaracao
+ 
     # Precisamos também salvar o valor das variáveis nas declarações
     def visitDeclaracao(self, ctx: lensParser.DeclaracaoContext):
         # Tenta múltiplas formas de acessar VAR
@@ -83,7 +83,6 @@ class SemanticAnalyzer(lensVisitor):
                 self.error(line, f"Atribuição incompatível: '{var_name}' é '{var_type}', mas recebeu '{valor_tipo}'.")
         return None
 
-    # MUDANÇA: atrsolta → atribuicao
     def visitAtribuicao(self, ctx: lensParser.AtribuicaoContext):
         try:
             var_name = ctx.VAR().getText()
@@ -102,36 +101,33 @@ class SemanticAnalyzer(lensVisitor):
             if valor_tipo and valor_tipo != "erro" and not self.comparar_tipos(simbolo["type"], valor_tipo):
                 self.error(line, f"Atribuição incompatível: '{var_name}' é '{simbolo['type']}', mas recebeu '{valor_tipo}'.")
                 
-            # NOVO: Atualizar valor se for literal
+
             if ctx.expressao():
                 valor_texto = ctx.expressao().getText()
                 if valor_texto.replace('-', '').isdigit():
                     simbolo["valor"] = valor_texto
         return None   
 
-    # MUDANÇA: imprime → impressao
+
     def visitImpressao(self, ctx: lensParser.ImpressaoContext):
         # Mudança: concat() → acesso direto às expressões
         for expressao in ctx.expressao():
             self.visit(expressao)
         return None
 
-    # MUDANÇA: ler → entrada
     def visitEntrada(self, ctx: lensParser.EntradaContext):
         var_name = ctx.VAR().getText()
         line = ctx.start.line
         
         # Verificar se a variável existe
         simbolo = self.buscar_var(var_name, line)
-        
-        # CORREÇÃO: input() atribui valor à variável
+
         if simbolo:
             simbolo["atribuida"] = True  # ← LINHA ADICIONADA
             self.log_action(f"Variável '{var_name}' recebeu valor via input().")
         
         return None
 
-    # MUDANÇA: condicao → condicional
     def visitCondicional(self, ctx: lensParser.CondicionalContext):
         # Visitar if obrigatório
         if ctx.if_stmt():
@@ -212,7 +208,6 @@ class SemanticAnalyzer(lensVisitor):
         # Criar novo escopo para o for
         self.scope_stack.append({})
         
-        # CORREÇÃO: Declarar automaticamente a variável de iteração
         if hasattr(ctx, 'VAR') and ctx.VAR():
             var_name = ctx.VAR().getText()
             line = ctx.start.line
@@ -295,8 +290,7 @@ class SemanticAnalyzer(lensVisitor):
             tipos = [tipo_primeiro]
             for i in range(1, len(ctx.termo_arit())):
                 tipos.append(self.visit(ctx.termo_arit(i)))
-            
-            # CORREÇÃO: Permitir concatenação de strings com operador +
+
             if "String" in tipos:
                 # Se tem String, só permite + para concatenação
                 if hasattr(ctx, 'op_adicao'):
