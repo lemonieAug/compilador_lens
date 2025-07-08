@@ -10,15 +10,11 @@ class LLVMIRGenerator:
     def __init__(self, tac_instructions: List[Dict[str, Any]]):
         self.tac_instructions = tac_instructions
         self.llvm_code = []
-        self.variables = {}
-        self.temp_counter = 0
-        self.label_counter = 0
-
-        # Strings globais
-        self.string_literals = {}    # nome → valor
-        self.string_to_name = {}     # valor → nome
-        self.string_counter = 0
-
+        self.variables = {}          # Mapeamento de variáveis para tipos LLVM
+        self.temp_counter = 0        # Contador para variáveis temporárias
+        self.label_counter = 0       # Contador para labels
+        self.string_literals = {}    # Mapeamento de strings para globals
+        self.string_counter = 0      # Contador para strings globais
         
     def generate(self) -> str:
         """Gera o código LLVM IR completo."""
@@ -45,7 +41,7 @@ class LLVMIRGenerator:
             "; Gerado automaticamente pelo compilador",
             "",
             "target datalayout = \"e-m:w-p270:32:32-p271:32:32-p272:64:64-i64:64-f80:128-n8:16:32:64-S128\"",
-            "target triple = \"x86_64-pc-linux-gnu\"",#fazer uma funcao para capturar o triple do sistema x86_64-pc-windows-gnu
+            "target triple = \"x86_64-pc-windows-gnu\"",
             ""
         ])
     
@@ -63,55 +59,50 @@ class LLVMIRGenerator:
     
     def _generate_global_strings(self):
         """Gera strings globais necessárias."""
-        # 1) Coleta das literais de PRINT
+        # Analisar instruções TAC para encontrar strings
         for instr in self.tac_instructions:
             if instr['op'] == 'PRINT':
                 arg = instr['arg1']
                 if isinstance(arg, str) and arg.startswith('"') and arg.endswith('"'):
                     self._add_string_literal(arg)
-
-        # 2) Strings de formato fixas
+        
+        # Formatos para printf e scanf
         self._add_format_string('int_format', '"%d"')
         self._add_format_string('int_format_newline', '"%d\\n"')
         self._add_format_string('string_format', '"%s"')
         self._add_format_string('string_format_newline', '"%s\\n"')
         self._add_format_string('scanf_int', '"%d"')
         self._add_format_string('newline', '"\\n"')
-
-        # 3) Emissão das globals (nome→valor)
+        
+        # Gerar as strings globais
         self.llvm_code.append("; Strings globais")
         for name, value in self.string_literals.items():
-            # raw sem aspas
-            raw = value[1:-1] if value.startswith('"') and value.endswith('"') else value
-            # conta bytes UTF-8 + terminador
-            byte_string = raw.encode('utf-8') + b"\x00"
-            length = len(byte_string)
-            # escapa cada byte em \XX
+            # Processar escapes
             escaped_value = self._escape_string(value)
-            # escreve a global
-            self.llvm_code.append(
-                f"@{name} = private unnamed_addr constant [{length} x i8] c{escaped_value}, align 1"
-            )
+            
+            # Calcular tamanho baseado no valor processado
+            # Remove aspas do escaped_value para contar bytes
+            content = escaped_value[1:-1]  # Remove aspas externas
+            # Decodifica escapes LLVM para contar bytes reais
+            real_content = content.replace('\\0A', '\n').replace('\\09', '\t').replace('\\0D', '\r').replace('\\00', '\0')
+            length = len(real_content.encode('utf-8'))
+            
+            self.llvm_code.append(f"@{name} = private unnamed_addr constant [{length} x i8] c{escaped_value}, align 1")
         self.llvm_code.append("")
-
-
-    def _add_string_literal(self, string_value: str) -> str:
-        """
-        Garante que cada literal apareça apenas uma vez.
-        Se já existir, retorna o nome; senão, cria novo.
-        """
-        # Se já conhecemos esse valor, retorna imediatamente o nome
-        if string_value in self.string_to_name:
-            return self.string_to_name[string_value]
         
-        # Senão, criamos um novo nome e registramos nos dois dicionários
-        self.string_counter += 1
-        name = f"str_{self.string_counter}"
-        self.string_literals[name] = string_value
-        self.string_to_name[string_value] = name
-        return name
-
-
+    def _add_string_literal(self, string_value: str) -> str:
+        """Adiciona uma string literal e retorna seu nome global."""
+        if string_value not in self.string_literals.values():
+            self.string_counter += 1
+            name = f"str_{self.string_counter}"
+            self.string_literals[name] = string_value
+            return name
+        else:
+            # Encontrar o nome existente
+            for name, value in self.string_literals.items():
+                if value == string_value:
+                    return name
+        return ""
     
     def _add_format_string(self, name: str, value: str):
         """Adiciona uma string de formato."""
@@ -119,21 +110,19 @@ class LLVMIRGenerator:
             self.string_literals[name] = value
     
     def _escape_string(self, s: str) -> str:
-        """Escapa uma string para o formato LLVM IR, usando escapes hexadecimais."""
-        # Remove aspas externas, se existirem
+        """Escapa uma string para LLVM."""
+        # Remove aspas externas
         if s.startswith('"') and s.endswith('"'):
             s = s[1:-1]
-
-        # Codifica a string em UTF-8 e adiciona o byte nulo de término
-        byte_str = s.encode('utf-8') + b"\x00"
-
-        # Converte cada byte para a notação \XX (hexadecimal, como \0A, \C3, etc.)
-        escaped = ''.join(f'\\{b:02X}' for b in byte_str)
-
-        # Retorna a string entre aspas como esperado pelo LLVM (ex: "...\00")
-        return f'"{escaped}"'
-
-
+        
+        # Converte escapes para formato LLVM
+        s = s.replace('\\n', '\\0A')    # Nova linha
+        s = s.replace('\\t', '\\09')    # Tab
+        s = s.replace('\\r', '\\0D')    # Carriage return
+        s = s.replace('\\\\', '\\5C')   # Backslash literal
+        
+        # Adiciona null terminator
+        return f'"{s}\\00"'
     
     def _generate_main_function(self):
         """Gera a função principal."""
@@ -143,10 +132,10 @@ class LLVMIRGenerator:
             "entry:"
         ])
         
-        # PRIMEIRO: Analisar todas as variáveis que serão usadas
+        # Analisar todas as variáveis que serão usadas
         self._pre_analyze_variables()
         
-        # SEGUNDO: Gerar todas as declarações de variáveis no início
+        # Gerar todas as declarações de variáveis no início
         self._generate_all_allocas()
 
         # Processar instruções TAC
@@ -337,7 +326,6 @@ class LLVMIRGenerator:
         result_reg = self._new_temp_reg()
         self.llvm_code.append(f"  {result_reg} = icmp {llvm_op} i32 {left_reg}, {right_reg}")
         
-        # Converter boolean para inteiro (1 ou 0)
         int_reg = self._new_temp_reg()
         self.llvm_code.append(f"  {int_reg} = zext i1 {result_reg} to i32")
         
@@ -348,8 +336,6 @@ class LLVMIRGenerator:
     
     def _generate_logical(self, op: str, left: str, right: str, result: str):
         """Gera código para operações lógicas."""
-        # Para operações lógicas, precisamos de short-circuit evaluation
-        # Por simplicidade, vamos fazer uma implementação básica
         
         left_val = self._get_value(left)
         right_val = self._get_value(right)
@@ -439,7 +425,7 @@ class LLVMIRGenerator:
             if last_line.startswith(term):
                 return True
         
-        return False  # Removido: or last_line.endswith(':')
+        return False 
 
     def _generate_goto(self, label: str):
         """Gera um salto incondicional."""
@@ -495,7 +481,6 @@ class LLVMIRGenerator:
                 'llvm_name': f"%{name}"
             }
         else:
-            # Atualizar tipo se necessário
             self.variables[name]['type'] = var_type
     
     def _load_variable(self, name: str, var_type: str) -> str:
@@ -510,7 +495,7 @@ class LLVMIRGenerator:
         if self._is_integer(value):
             return value
         elif self._is_string(value):
-            return value  # Será processado pelo contexto
+            return value  
         elif value in self.variables:
             var_type = self.variables[value]['type']
             return self._load_variable(value, var_type)

@@ -37,9 +37,9 @@ for linha in 0..n {    // Laço externo para percorrer cada linha do triângulo
 // -------------------------------------------
 
 // Definimos os três lados do triângulo
-let a: float = 3.0    // Primeiro lado
-let b: float = 4.0    // Segundo lado
-let c: float = 5.0    // Terceiro lado
+let a: float = 3    // Primeiro lado
+let b: float = 4    // Segundo lado
+let c: float = 5    // Terceiro lado
 
 // Primeiro teste: verificar se algum valor é zero ou negativo
 if (a <= 0 || b <= 0 || c <= 0) {

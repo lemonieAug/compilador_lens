@@ -11,13 +11,11 @@ class ASTDotVisitor(lensVisitor):
         return f"node{self.count}"
 
     def add_node(self, label):
-        # CORRIGIDO: Escape adequado de caracteres especiais
         label = str(label).replace('"', '\\"').replace('\n', '\\n').replace('\t', '\\t')
         node_id = self.next_id()
         self.result.append(f'{node_id} [label="{label}"];')
         return node_id
 
-    # CORRIGIDO: Implementação mais robusta
     def visitChildren(self, node):
         if not node:
             return self.add_node("NULL")
@@ -57,7 +55,6 @@ class ASTDotVisitor(lensVisitor):
         self.result.append("}")
         return "\n".join(self.result)
 
-    # NOVO: Método para salvar diretamente
     def save_to_file(self, filename="ast.dot"):
         """Salva o grafo DOT em arquivo."""
         try:

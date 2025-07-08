@@ -14,7 +14,6 @@ class CustomErrorListener(ErrorListener):
     def syntaxError(self, recognizer, offendingSymbol, line, column, msg, e):
         self.tem_erro = True
         
-        # CORRIGIDO: Detecção mais precisa de erros léxicos vs sintáticos
         if ("token recognition error" in msg or 
             "extraneous input" in msg or
             "mismatched input" in msg):
@@ -44,7 +43,6 @@ class CustomErrorListener(ErrorListener):
         encontrado = offendingSymbol.text if offendingSymbol else "EOF"
         esperado = "elemento válido"
 
-        # CORRIGIDO: Melhor extração de tokens esperados
         if hasattr(e, "getExpectedTokens") and e.getExpectedTokens():
             expected_tokens = []
             expected = list(e.getExpectedTokens())
@@ -61,7 +59,7 @@ class CustomErrorListener(ErrorListener):
                         expected_tokens.append(recognizer.symbolicNames[token_type])
             
             if expected_tokens:
-                esperado = "', '".join(expected_tokens[:3])  # Limitar a 3 opções
+                esperado = "', '".join(expected_tokens[:3])  
                 if len(expected_tokens) > 3:
                     esperado += "', ou outros"
 

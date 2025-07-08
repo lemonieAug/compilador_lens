@@ -26,15 +26,16 @@ def analisar_arquivo(caminho_arquivo):
             codigo = f.read()
 
         logging.info("Código carregado com sucesso.")
-        print("📥 Código carregado:\n" + "-"*40)
-        print(codigo)
-        print("-"*40)
+        logging.info("Mostrando código carregado:")
+        logging.info(codigo)
+        logging.info("Finalizando exibição do código.")
 
         # ========================================
         # 🔍 FASE 1: ANÁLISE LÉXICA
         # ========================================
         print("\n🔍 FASE 1: Análise Léxica")
-        
+        logging.info("Iniciando análise léxica.")
+
         input_stream = InputStream(codigo)
         lexer = lensLexer(input_stream)
 
@@ -45,29 +46,28 @@ def analisar_arquivo(caminho_arquivo):
         token_stream = CommonTokenStream(lexer)
         token_stream.fill()
 
+        with open("lexico.txt", "w", encoding="utf-8") as f_tokens:
+            for token in token_stream.tokens:
+                token_info = f"{lexer.symbolicNames[token.type]} ('{token.text}') [Linha {token.line}, Coluna {token.column}]"
+                f_tokens.write(token_info + "\n")
+                logging.info(f"TOKEN: {token_info}")
+
         if error_listener_lexer.tem_erro:
             logging.warning("Erro léxico detectado. Encerrando análise.")
             print("❌ Erros léxicos encontrados. Encerrando análise.")
             return
         
         print("✅ Análise léxica concluída sem erros.")
-
-        # 📊 RESULTADO DA ANÁLISE LÉXICA - TOKENS
-        logging.info("Tokens analisados com sucesso. Imprimindo tokens:")
-        print("\n🔎 Tokens identificados:")
-        for i, token in enumerate(token_stream.tokens):
-            if token.type != Token.EOF:
-                nome = (lexer.symbolicNames[token.type] 
-                       if token.type < len(lexer.symbolicNames) and lexer.symbolicNames[token.type] 
-                       else f"TOKEN_{token.type}")
-                print(f"{i+1:3d}. <{nome}, '{token.text}', L{token.line}, C{token.column}>")
-                logging.info(f"Token: <{nome}, {token.text}, Linha {token.line}, Coluna {token.column}>")
+        print("📄 Tokens salvos em 'lexico.txt'.")
+        logging.info("Análise léxica concluída com sucesso.")
 
         # ========================================
         # 🔍 FASE 2: ANÁLISE SINTÁTICA
         # ========================================
         print("\n🔍 FASE 2: Análise Sintática")
-        
+        logging.info("Iniciando análise sintática.")
+
+        # Criar o parser com o token stream
         parser = lensParser(token_stream)
 
         error_listener_parser = CustomErrorListener()
@@ -82,9 +82,7 @@ def analisar_arquivo(caminho_arquivo):
             return
         
         print("✅ Análise sintática concluída sem erros.")
-
-        # 🌳 RESULTADO DA ANÁLISE SINTÁTICA - AST
-        print("\n🌳 Gerando AST...")
+        print("🌳 Gerando AST...")
         
         visitor = ASTDotVisitor()
         visitor.visit(arvore)
@@ -122,6 +120,8 @@ def analisar_arquivo(caminho_arquivo):
             print("⚠️ Graphviz não encontrado. AST salva apenas como .dot")
             print("💡 Instale o Graphviz para gerar imagens: https://graphviz.org/download/")
 
+        logging.info("Análise sintática concluída com sucesso.")
+
         # ========================================
         # 🔍 FASE 3: ANÁLISE SEMÂNTICA
         # ========================================
@@ -143,44 +143,37 @@ def analisar_arquivo(caminho_arquivo):
         print("✅ Análise semântica concluída sem erros.")
 
         # ========================================
-        # 🔧 FASE 4: GERAÇÃO DE CÓDIGO (Só se sem erros)
+        # 🔧 FASE 4: GERAÇÃO DE CÓDIGO 
         # ========================================
         print("\n🔧 FASE 4: Geração de Código Intermediário (TAC)")
-        
-        # Só chega aqui se NÃO houver erros semânticos
+
         logging.info("Iniciando geração de código TAC.")
+
         tac_generator = TACGenerator()
         tac_generator.visit(arvore)
-        
+        tac_generator.save_to_file("output.tac")
+
+        logging.info("Finalizando geração de código TAC.")
+        logging.info("Código TAC salvo em 'output.tac'.")
+
         print("✅ Código TAC gerado com sucesso.")
-        print("\n📝 Código TAC:")
-        print("-" * 50)
-        print(tac_generator.get_tac_code())
-        print("-" * 50)
-        
-        if tac_generator.save_to_file("output.tac"):
-            print("✅ Código TAC salvo em 'output.tac'.")
+        print("✅ Código TAC salvo em 'output.tac'.")
 
         # ========================================
         # 🔧 FASE 5: GERAÇÃO DE LLVM IR
         # ========================================
-        print("\n🔧 FASE 5: Escolha do Backend de Geração")
-        print("2. LLVM IR (.ll)")
-        
-        arquivos_gerados = []
+        print("\n🔧 FASE 5: Geração de LLVM IR")
 
         logging.info("Iniciando geração de código LLVM IR.")
+
         llvm_generator = LLVMIRGenerator(tac_generator.instructions)
-            
+        llvm_generator.generate()
+        llvm_generator.save_to_file("output.ll")
+
+        logging.info("Finalizando geração de código LLVM IR.")
+        
         print("✅ Código LLVM IR gerado com sucesso.")
-        print("\n🦙 Código LLVM IR:")
-        print("-" * 60)
-        print(llvm_generator.generate())
-        print("-" * 60)
-            
-        if llvm_generator.save_to_file("output.ll"):
-            print("✅ Código LLVM IR salvo em 'output.ll'.")
-            arquivos_gerados.append("output.ll")
+        print("✅ Código LLVM IR salvo em 'output.ll'.")
 
         # ========================================
         # 🎉 FINALIZAÇÃO
@@ -190,35 +183,23 @@ def analisar_arquivo(caminho_arquivo):
         print("   • analisador.log  - Log detalhado")
         print("   • ast.dot/.png    - Árvore Sintática")
         print("   • output.tac      - Código Intermediário")
-        
-        for arquivo in arquivos_gerados:
-            if arquivo == "output.ll":
-                print("   • output.ll       - LLVM IR")
+        print("   • output.ll       - LLVM IR")
 
         # ========================================
         # 💡 INSTRUÇÕES DE EXECUÇÃO
         # ========================================
         print("\n💡 Instruções de execução:")
-        
-        if "output.ll" in arquivos_gerados:
-            print("\n📋 LLVM IR (output.ll):")
-            print("   # Execução direta:")
-            print("   clang output.ll -o output.exe")
+        print("   clang output.ll -o output.exe")
 
         print("\n🔧 Dependências necessárias:")
-        if "output.ll" in arquivos_gerados:
-            print("   • LLVM (clang)")
-            print("   • MinGW (GCC)")
+        print("   • LLVM (clang)")
+        print("   • MinGW (GCC)")
 
     except Exception as e:
         logging.exception(f"Erro durante a análise: {e}")
         print(f"❌ Erro durante a análise: {e}")
 
 if __name__ == "__main__":
-    print("🚀 COMPILADOR LENS - Pipeline Completo")
-    print("📋 Fases: Léxica → Sintática → Semântica → TAC → LLVM")
-    print("=" * 80)
-    
     # caminho = str(input("Digite o nome do arquivo Lens: "))
     caminho = "script"
     analisar_arquivo(f'{caminho}.lens')

@@ -89,11 +89,11 @@ declare void @free(i8*)
 @str_75 = private unnamed_addr constant [18 x i8] c"E/S: print, input\00", align 1
 @str_76 = private unnamed_addr constant [37 x i8] c"Expressões complexas e precedência\00", align 1
 @int_format = private unnamed_addr constant [3 x i8] c"%d\00", align 1
-@int_format_newline = private unnamed_addr constant [5 x i8] c"%d\n\00", align 1
+@int_format_newline = private unnamed_addr constant [4 x i8] c"%d\0A\00", align 1
 @string_format = private unnamed_addr constant [3 x i8] c"%s\00", align 1
-@string_format_newline = private unnamed_addr constant [5 x i8] c"%s\n\00", align 1
+@string_format_newline = private unnamed_addr constant [4 x i8] c"%s\0A\00", align 1
 @scanf_int = private unnamed_addr constant [3 x i8] c"%d\00", align 1
-@newline = private unnamed_addr constant [3 x i8] c"\n\00", align 1
+@newline = private unnamed_addr constant [2 x i8] c"\0A\00", align 1
 @str_77 = private unnamed_addr constant [12 x i8] c"João Silva\00", align 1
 @str_78 = private unnamed_addr constant [7 x i8] c"Santos\00", align 1
 
