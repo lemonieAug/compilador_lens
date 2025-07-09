@@ -221,7 +221,9 @@ class LLVMIRGenerator:
             self._generate_logical(op, arg1, arg2, result)
         elif op == 'PRINT':
             self._generate_print(arg1, arg2)
-        elif op == 'read':
+        elif op == 'PRINT_MULTI':
+            self._generate_print_multi(arg1)
+        elif op == 'READ':
             self._generate_read(result)
         elif op == 'LABEL':
             self._generate_label(result)
@@ -397,7 +399,49 @@ class LLVMIRGenerator:
         else:
             # Assumir que é uma variável temporária inteira
             self.llvm_code.append(f"  call i32 (i8*, ...) @printf(i8* getelementptr inbounds ([4 x i8], [4 x i8]* @int_format_newline, i64 0, i64 0), i32 {self._get_value(arg1)})")
-    
+
+    def _generate_print_multi(self, args: list):
+        """Gera código para impressão de múltiplos argumentos em uma linha."""
+        # Monta o formato: "%s %s %s\n" ou misto com %d se tiver inteiros
+        fmt_parts = []
+        llvm_args = []
+        for arg in args:
+            if self._is_string(arg):
+                fmt_parts.append("%s")
+                string_name = self._add_string_literal(arg)
+                string_len = len(self._escape_string(arg))
+                llvm_args.append(f"getelementptr inbounds ([{string_len} x i8], [{string_len} x i8]* @{string_name}, i64 0, i64 0)")
+            elif self._is_integer(arg):
+                fmt_parts.append("%d")
+                llvm_args.append(str(arg))
+            elif arg in self.variables:
+                var_type = self.variables[arg]['type']
+                if var_type == 'i32':
+                    fmt_parts.append("%d")
+                    val_reg = self._load_variable(arg, 'i32')
+                    llvm_args.append(val_reg)
+                elif var_type == 'i8*':
+                    fmt_parts.append("%s")
+                    val_reg = self._load_variable(arg, 'i8*')
+                    llvm_args.append(val_reg)
+            else:
+                # fallback: trata como inteiro
+                fmt_parts.append("%d")
+                llvm_args.append(str(arg))
+        fmt_str = " ".join(fmt_parts) + "\\n"
+        fmt_literal = f'"{fmt_str}"'
+        fmt_name = self._add_string_literal(fmt_literal)
+        fmt_len = len(self._escape_string(fmt_literal))
+        # Monta chamada printf
+        arg_list = [f"i8* getelementptr inbounds ([{fmt_len} x i8], [{fmt_len} x i8]* @{fmt_name}, i64 0, i64 0)"]
+        # Adiciona tipos dos argumentos
+        for i, arg in enumerate(llvm_args):
+            if fmt_parts[i] == "%d":
+                arg_list.append(f"i32 {arg}")
+            else:
+                arg_list.append(f"i8* {arg}")
+        self.llvm_code.append(f"  call i32 (i8*, ...) @printf({', '.join(arg_list)})")    
+
     def _generate_read(self, result: str):
         """Gera código para leitura de entrada."""
         self._ensure_variable_type(result, 'i32')

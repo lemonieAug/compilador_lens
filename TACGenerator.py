@@ -51,10 +51,12 @@ class TACGenerator(lensVisitor):
         elif op in ['&&', '||']:
             return f"{result} = {arg1} {op} {arg2}"
         elif op == 'PRINT':
-            if arg2:
-                return f"print {arg1}, {arg2}"
             return f"print {arg1}"
-        elif op == 'read':
+        elif op == 'PRINT_MULTI':
+            # arg1 é uma lista de expressões
+            exprs = ', '.join(str(x) for x in arg1)
+            return f"print_multi {exprs}"
+        elif op == 'READ':
             return f"read {result}"
         elif op == 'LABEL':
             return f"{result}:"
@@ -156,15 +158,8 @@ class TACGenerator(lensVisitor):
                     expr_result = self.visit(expressions[0])
                     self.emit('PRINT', expr_result, None, None)
                 elif len(expressions) >= 2:
-                    # print :: expr1, expr2, ...
-                    for i, expr in enumerate(expressions):
-                        expr_result = self.visit(expr)
-                        if i == 0:
-                            # Primeira expressão
-                            self.emit('PRINT', expr_result, None, None)
-                        else:
-                            # Expressões subsequentes (separadas por vírgula)
-                            self.emit('PRINT', expr_result, None, None)
+                    expr_results = [self.visit(expr) for expr in expressions]
+                    self.emit('PRINT_MULTI', expr_results, None, None)
             else:
                 # Objeto único
                 expr_result = self.visit(expressions)
@@ -175,7 +170,7 @@ class TACGenerator(lensVisitor):
     def visitEntrada(self, ctx: lensParser.EntradaContext):
         """Gera TAC para comando input."""
         var_name = ctx.VAR().getText()
-        self.emit('read', None, None, var_name)
+        self.emit('READ', None, None, var_name)
         return var_name
 
     def visitExpressao_arit(self, ctx: lensParser.Expressao_aritContext):

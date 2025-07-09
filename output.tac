@@ -7,124 +7,100 @@ nome = "João Silva"
 contador = 0
 peso = 70
 sobrenome = "Santos"
-t1 = idade + 5
-idade = t1
-t2 = altura - 5
-altura = t2
-t3 = contador * 2
-contador = t3
-t4 = peso / 2
-peso = t4
+_t1 = idade + 5
+idade = _t1
+_t2 = altura - 5
+altura = _t2
+_t3 = contador * 2
+contador = _t3
+_t4 = peso / 2
+peso = _t4
 print "=== DEMONSTRAÇÃO LENS ==="
 print nome
 print idade
-print "Nome completo:"
-print nome
-print sobrenome
-print "Idade atual:"
-print idade
-print "Altura:"
-print altura
-print "Peso:"
-print peso
+print_multi "Nome completo:", nome, sobrenome
+print_multi "Idade atual:", idade
+print_multi "Altura:", altura
+print_multi "Peso:", peso
 a = 10
 b = 3
-t5 = a + b
-soma = t5
-t6 = a - b
-subtracao = t6
-t7 = a * b
-multiplicacao = t7
-t8 = a / b
-divisao = t8
-print "Operações com"
-print a
-print "e"
-print b
-print "Soma:"
-print soma
-print "Subtração:"
-print subtracao
-print "Multiplicação:"
-print multiplicacao
-print "Divisão:"
-print divisao
-t9 = b * 2
-t10 = a + t9
-t11 = t10 - 1
-resultado = t11
-t12 = a + b
-t13 = t12 * 2
-complexo = t13
-print "Resultado complexo:"
-print resultado
-print "Com parênteses:"
-print complexo
-t14 = a == b
-igual = t14
-t15 = a != b
-diferente = t15
-t16 = a < b
-menor = t16
-t17 = a > b
-maior = t17
-t18 = a <= b
-menorIgual = t18
-t19 = a >= b
-maiorIgual = t19
+_t5 = a + b
+soma = _t5
+_t6 = a - b
+subtracao = _t6
+_t7 = a * b
+multiplicacao = _t7
+_t8 = a / b
+divisao = _t8
+print_multi "Operações com", a, "e", b
+print_multi "Soma:", soma
+print_multi "Subtração:", subtracao
+print_multi "Multiplicação:", multiplicacao
+print_multi "Divisão:", divisao
+_t9 = b * 2
+_t10 = a + _t9
+_t11 = _t10 - 1
+resultado = _t11
+_t12 = a + b
+_t13 = _t12 * 2
+complexo = _t13
+print_multi "Resultado complexo:", resultado
+print_multi "Com parênteses:", complexo
+_t14 = a == b
+igual = _t14
+_t15 = a != b
+diferente = _t15
+_t16 = a < b
+menor = _t16
+_t17 = a > b
+maior = _t17
+_t18 = a <= b
+menorIgual = _t18
+_t19 = a >= b
+maiorIgual = _t19
 print "=== COMPARAÇÕES ==="
-print "10 == 3:"
-print igual
-print "10 != 3:"
-print diferente
-print "10 < 3:"
-print menor
-print "10 > 3:"
-print maior
-print "10 <= 3:"
-print menorIgual
-print "10 >= 3:"
-print maiorIgual
+print_multi "10 == 3:", igual
+print_multi "10 != 3:", diferente
+print_multi "10 < 3:", menor
+print_multi "10 > 3:", maior
+print_multi "10 <= 3:", menorIgual
+print_multi "10 >= 3:", maiorIgual
 condicao1 = 1
 condicao2 = 0
-t20 = condicao1 && condicao2
-e_logico = t20
-t21 = condicao1 || condicao2
-ou_logico = t21
+_t20 = condicao1 && condicao2
+e_logico = _t20
+_t21 = condicao1 || condicao2
+ou_logico = _t21
 print "=== OPERAÇÕES LÓGICAS ==="
-print "1 && 0:"
-print e_logico
-print "1 || 0:"
-print ou_logico
-t22 = a > b
-t23 = soma > 10
-t24 = t22 && t23
-complexa = t24
-print "Expressão complexa:"
-print complexa
+print_multi "1 && 0:", e_logico
+print_multi "1 || 0:", ou_logico
+_t22 = a > b
+_t23 = soma > 10
+_t24 = _t22 && _t23
+complexa = _t24
+print_multi "Expressão complexa:", complexa
 print "Digite um número:"
 read entrada_usuario
-print "Você digitou:"
-print entrada_usuario
+print_multi "Você digitou:", entrada_usuario
 print "=== ESTRUTURAS CONDICIONAIS ==="
-t25 = idade >= 18
-if_false t25 goto L2
+_t25 = idade >= 18
+if_false _t25 goto L2
 print "Maior de idade"
 goto L1
 L2:
 L1:
-t26 = idade < 13
-if_false t26 goto L4
+_t26 = idade < 13
+if_false _t26 goto L4
 print "Criança"
 goto L3
 L4:
-t27 = idade < 18
-if_false t27 goto L5
+_t27 = idade < 18
+if_false _t27 goto L5
 print "Adolescente"
 goto L3
 L5:
-t28 = idade < 60
-if_false t28 goto L6
+_t28 = idade < 60
+if_false _t28 goto L6
 print "Adulto"
 goto L3
 L6:
@@ -134,23 +110,21 @@ print "=== LAÇOS FOR ==="
 print "Contagem de 1 a 5:"
 i = 1
 L7:
-t29 = i <= 5
-if_false t29 goto L8
-print "Número:"
-print i
-t30 = i + 1
-i = t30
+_t29 = i <= 5
+if_false _t29 goto L8
+print_multi "Número:", i
+_t30 = i + 1
+i = _t30
 goto L7
 L8:
 print "Contagem regressiva:"
 j = 10
 L9:
-t31 = j >= 7
-if_false t31 goto L10
-print "Contagem:"
-print j
-t32 = j - 1
-j = t32
+_t31 = j >= 7
+if_false _t31 goto L10
+print_multi "Contagem:", j
+_t32 = j - 1
+j = _t32
 goto L9
 L10:
 inicio = 0
@@ -158,100 +132,74 @@ fim = 3
 print "Range dinâmico:"
 k = inicio
 L11:
-t33 = k <= fim
-if_false t33 goto L12
-print "Valor de k:"
-print k
-t34 = k * k
-quadrado = t34
-print "Quadrado:"
-print quadrado
-t35 = k + 1
-k = t35
+_t33 = k <= fim
+if_false _t33 goto L12
+print_multi "Valor de k:", k
+_t34 = k * k
+quadrado = _t34
+print_multi "Quadrado:", quadrado
+_t35 = k + 1
+k = _t35
 goto L11
 L12:
 print "=== LAÇOS WHILE ==="
 cont = 0
 print "Contagem while até 3:"
 L13:
-t36 = cont < 3
-if_false t36 goto L14
-print "Contador:"
-print cont
-t37 = cont + 1
-cont = t37
+_t36 = cont < 3
+if_false _t36 goto L14
+print_multi "Contador:", cont
+_t37 = cont + 1
+cont = _t37
 goto L13
 L14:
 x = 10
 y = 1
 print "While com condição complexa:"
 L15:
-t38 = x > y
-t39 = y < 5
-t40 = t38 && t39
-if_false t40 goto L16
-print "x ="
-print x
-print "y ="
-print y
-t41 = x - 2
-x = t41
-t42 = y + 1
-y = t42
+_t38 = x > y
+_t39 = y < 5
+_t40 = _t38 && _t39
+if_false _t40 goto L16
+print_multi "x =", x, "y =", y
+_t41 = x - 2
+x = _t41
+_t42 = y + 1
+y = _t42
 goto L15
 L16:
 print "=== CASOS AVANÇADOS ==="
 num1 = 15
 num2 = 4
 operacao = 1
-t43 = operacao == 1
-if_false t43 goto L18
-t44 = num1 + num2
-result = t44
-print "Soma:"
-print num1
-print "+"
-print num2
-print "="
-print result
+_t43 = operacao == 1
+if_false _t43 goto L18
+_t44 = num1 + num2
+result = _t44
+print_multi "Soma:", num1, "+", num2, "=", result
 goto L17
 L18:
-t45 = operacao == 2
-if_false t45 goto L19
-t46 = num1 - num2
-result = t46
-print "Subtração:"
-print num1
-print "-"
-print num2
-print "="
-print result
+_t45 = operacao == 2
+if_false _t45 goto L19
+_t46 = num1 - num2
+result = _t46
+print_multi "Subtração:", num1, "-", num2, "=", result
 goto L17
 L19:
-t47 = operacao == 3
-if_false t47 goto L20
-t48 = num1 * num2
-result = t48
-print "Multiplicação:"
-print num1
-print "*"
-print num2
-print "="
-print result
+_t47 = operacao == 3
+if_false _t47 goto L20
+_t48 = num1 * num2
+result = _t48
+print_multi "Multiplicação:", num1, "*", num2, "=", result
 goto L17
 L20:
-t49 = operacao == 4
-if_false t49 goto L21
-t50 = num2 != 0
-if_false t50 goto L23
-t51 = num1 / num2
-result = t51
-print "Divisão:"
-print num1
-print "/"
-print num2
-print "="
-print result
+_t49 = operacao == 4
+if_false _t49 goto L21
+_t50 = num2 != 0
+if_false _t50 goto L23
+_t51 = num1 / num2
+result = _t51
+print_multi "Divisão:", num1, "/", num2, "=", result
 goto L22
 L23:
 print "Erro: Divisão por zero!"
@@ -261,44 +209,34 @@ L21:
 L17:
 n = 5
 fatorial = 1
-print "Calculando fatorial de"
-print n
+print_multi "Calculando fatorial de", n
 f = 1
 L24:
-t52 = f <= n
-if_false t52 goto L25
-t53 = fatorial * f
-fatorial = t53
-print "Passo"
-print f
-print ":"
-print fatorial
-t54 = f + 1
-f = t54
+_t52 = f <= n
+if_false _t52 goto L25
+_t53 = fatorial * f
+fatorial = _t53
+print_multi "Passo", f, ":", fatorial
+_t54 = f + 1
+f = _t54
 goto L24
 L25:
-print "Fatorial final:"
-print fatorial
+print_multi "Fatorial final:", fatorial
 fib1 = 0
 fib2 = 1
 fib_count = 0
 print "Sequência de Fibonacci:"
-print "F(0) ="
-print fib1
-print "F(1) ="
-print fib2
+print_multi "F(0) =", fib1
+print_multi "F(1) =", fib2
 L26:
-t55 = fib_count < 8
-if_false t55 goto L27
-t56 = fib1 + fib2
-proximo = t56
-t57 = fib_count + 1
-fib_count = t57
-print "F("
-t58 = fib_count + 1
-print t58
-print ") ="
-print proximo
+_t55 = fib_count < 8
+if_false _t55 goto L27
+_t56 = fib1 + fib2
+proximo = _t56
+_t57 = fib_count + 1
+fib_count = _t57
+_t58 = fib_count + 1
+print_multi "F(", _t58, ") =", proximo
 fib1 = fib2
 fib2 = proximo
 goto L26
@@ -306,21 +244,19 @@ L27:
 nota = 8
 frequencia = 85
 print "=== VALIDAÇÃO DE APROVAÇÃO ==="
-print "Nota:"
-print nota
-print "Frequência:"
-print frequencia
-t59 = nota >= 7
-t60 = frequencia >= 75
-t61 = t59 && t60
-if_false t61 goto L29
+print_multi "Nota:", nota
+print_multi "Frequência:", frequencia
+_t59 = nota >= 7
+_t60 = frequencia >= 75
+_t61 = _t59 && _t60
+if_false _t61 goto L29
 print "APROVADO!"
 goto L28
 L29:
-t62 = nota >= 5
-t63 = frequencia >= 75
-t64 = t62 && t63
-if_false t64 goto L30
+_t62 = nota >= 5
+_t63 = frequencia >= 75
+_t64 = _t62 && _t63
+if_false _t64 goto L30
 print "RECUPERAÇÃO"
 goto L28
 L30:
