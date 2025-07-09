@@ -184,22 +184,16 @@ def analisar_arquivo(caminho_arquivo):
         print("   • ast.dot/.png    - Árvore Sintática")
         print("   • output.tac      - Código Intermediário")
         print("   • output.ll       - LLVM IR")
-        print("   • output.s        - Assembly")
-        print("   • output.o        - Objeto")
-        print("   • programa_lens   - Executável final")
 
         # ========================================
-        # 💡 INSTRUÇÕES DE EXECUÇÃO (LINUX)
+        # 💡 INSTRUÇÕES DE EXECUÇÃO
         # ========================================
         print("\n💡 Instruções de execução:")
-        print("   1. llc output.ll -o output.s")
-        print("   2. gcc -c output.s -o output.o")
-        print("   3. gcc output.o -o programa_lens -no-pie")
-        print("   4. ./programa_lens")
+        print("   clang output.ll -o output.exe")
 
         print("\n🔧 Dependências necessárias:")
-        print("   • LLVM (llc, clang)")
-        print("   • GCC (compilador C para gerar executável Linux)")
+        print("   • LLVM (clang)")
+        print("   • MinGW (GCC)")
 
     except Exception as e:
         logging.exception(f"Erro durante a análise: {e}")

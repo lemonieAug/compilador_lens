@@ -1,4 +1,5 @@
 import logging
+import re
 from typing import List, Dict, Any
 
 class LLVMIRGenerator:
@@ -250,7 +251,7 @@ class LLVMIRGenerator:
             self.llvm_code.append(f"  store i8* getelementptr inbounds ([{string_len} x i8], [{string_len} x i8]* @{string_name}, i64 0, i64 0), i8** {dest_var}")
         else:
             # Variável temporária ou variável
-            if dest.startswith('t') and source in self.variables:
+            if re.fullmatch(r'_t[\w]*', dest) and source in self.variables:
                 # Copiar tipo da variável fonte
                 source_type = self.variables[source]['type']
                 self._ensure_variable_type(dest, source_type)

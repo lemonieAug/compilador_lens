@@ -16,7 +16,7 @@ class TACGenerator(lensVisitor):
     def new_temp(self):
         """Gera uma nova variável temporária."""
         self.temp_counter += 1
-        return f"t{self.temp_counter}"
+        return f"_t{self.temp_counter}"
     
     def new_label(self):
         """Gera um novo label."""
